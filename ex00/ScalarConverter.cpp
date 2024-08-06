@@ -87,10 +87,14 @@ bool ScalarConverter::check_double(const std::string& target)
     double  result;
 
     result = strtod(target.c_str(), &endptr);
+
     if (*endptr != '\0')
         return (false);
-    if (errno == ERANGE)
+    if (result == HUGE_VAL || result == -HUGE_VAL)
         return (double_overflow = true, false);
+
+    std::cout << "Returned false? -> " << result << std::endl;
+
     if (result > MAX_FLOAT || result < MIN_FLOAT)
         float_overflow = true;
     if (result > MAX_INT || result < MIN_INT)
@@ -150,6 +154,51 @@ t_type ScalarConverter::get_type(const std::string& target)
     return (OTHER);
 }
 
+/*
+    For floats and doubles, we set the precision to 1 because 
+    By default, std::cout does not preserve trailing zeroes 
+    in floating-point numbers, so if target is 98.0000 it will 
+    print 98 instead of 98.0000; so to fix this issue, we have 
+    to set the precision ourselves in order to let std::cout 
+    display those trailing zeroes. But, the subject pdf shows 
+    only one trailing zero after the decimal, so we deduce that 
+    the precision they require of us is just 1.
+
+    But I do that in the following condition:
+        else if (float_version == static_cast<int>(float_version))
+    
+    The reason is because if I only had:
+        if (double_overflow)
+                std::cout << "impossible" << std::endl;
+        else
+            std::cout << std::fixed << std::setprecision(1) << double_version << std::endl;
+    
+    Then if I had something like:
+        ./convert 184845151555512
+    
+    Then the output would be:
+        char: impossible
+        int: impossible
+        float: 184845151555512.0
+        double: 184845151555512.0
+    instead of:
+        char: impossible
+        int: impossible
+        float: 1.84845e+14
+        double: 1.84845e+14
+    
+    So basically, I only want it to set the precision to 1 when I do something
+    ./convert 98 or ./convert 98.0000
+    and in these scenarios float_version == static_cast<int>(float_version) would 
+    be true. 
+
+    But in a case like ./convert 184845151555512, i want the answer in scientific
+    notation and 184845151555512 is larger than MAX_INT anyways so the line
+    static_cast<int>(float_version)) would default to -2147483648 automatically 
+    whenever a we cast from a float value that is larger than int max to the 
+    int type. Then since, 184845151555512 != -2147483648, it would automatically 
+    give us the desired output which is scientific notation display.
+*/   
 void ScalarConverter::printer()
 {
     std::cout << "char: ";
@@ -165,28 +214,22 @@ void ScalarConverter::printer()
         std::cout << "impossible" << std::endl;
     else
         std::cout << int_version << std::endl;
-
-    /*
-        For floats and doubles, we set the precision to 1 because 
-        By default, std::cout does not preserve trailing zeroes 
-        in floating-point numbers, so if target is 98.0000 it will 
-        print 98 instead of 98.0000; so to fix this issue, we have 
-        to set the precision ourselves in order to let std::cout 
-        display those trailing zeroes. But, the subject pdf shows 
-        only one trailing zero after the decimal, so we deduce that 
-        the precision they require of us is just 1.
-    */    
+ 
     std::cout << "float: ";
     if (float_overflow)
         std::cout << "impossible" << std::endl;
-    else
+    else if (float_version == static_cast<int>(float_version))
         std::cout << std::fixed << std::setprecision(1) << float_version << std::endl;
+    else
+        std::cout << float_version << std::endl;
 
     std::cout << "double: "; 
     if (double_overflow)
         std::cout << "impossible" << std::endl;
-    else
+    else if (double_version == static_cast<int>(double_version))
         std::cout << std::fixed << std::setprecision(1) << double_version << std::endl;
+    else
+        std::cout << double_version << std::endl;
 }
 
 void ScalarConverter::convert(const std::string& target)

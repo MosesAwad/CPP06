@@ -38,5 +38,12 @@ int main()
 
 		std::cout << "In char form -> " << static_cast<char>(lol) << std::endl;
 	}
+
+	std::cout << "--------------- MAIN 3 ---------------" << std::endl;
+	{
+		float lol = 2147483650.0f;
+
+		std::cout << "In int form -> " << static_cast<int>(lol) << std::endl;
+	}
 	return (0);
 }
