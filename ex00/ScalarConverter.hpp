@@ -37,6 +37,7 @@ class ScalarConverter
         static bool int_overflow;
         static bool float_overflow;
         static bool double_overflow;
+        static bool scientific_notation;
 
         static const int    MAX_INT;
         static const int    MIN_INT;

@@ -15,6 +15,7 @@ bool ScalarConverter::char_overflow = false;
 bool ScalarConverter::int_overflow = false;
 bool ScalarConverter::float_overflow = false;
 bool ScalarConverter::double_overflow = false;
+bool ScalarConverter::scientific_notation = false;
 
 char     ScalarConverter::char_version;
 int     ScalarConverter::int_version;
@@ -29,25 +30,23 @@ bool    ScalarConverter::check_int(const std::string& target)
     result = strtol(target.c_str(), &endptr, 10);
     if (*endptr != '\0')
         return (false);
-    // if (*target.c_str() == *endptr)
-    //     return (false);
+    if (target.size() > 6)
+        scientific_notation = true;
     if (result > MAX_INT || result < MIN_INT)
     {
         int_overflow = true;
         return (false);
     }
 
-
     if (int_version > MAX_CHAR || int_version < MIN_CHAR)
         char_overflow = true;
     if (result > CHAR_MAX || result < CHAR_MIN)
         char_overflow = true;
 
-    double_version = static_cast<double>(result);
-    float_version = static_cast<float>(result);
     int_version = static_cast<int>(result);
-
-    char_version = static_cast<char>(result);
+    float_version = static_cast<float>(int_version);
+    double_version = static_cast<double>(int_version);
+    char_version = static_cast<char>(int_version);
         
     return (true);
 }
@@ -73,10 +72,13 @@ bool ScalarConverter::check_float(const std::string& target)
     if (result > MAX_CHAR || result < MIN_CHAR)
         char_overflow = true;
 
-    double_version = static_cast<double>(result);
-    float_version = static_cast<float>(result);
-    int_version = static_cast<int>(result);
+    size_t  dec_pos = target.find('.');
+    if (dec_pos > 6)
+        scientific_notation = true;
 
+    float_version = static_cast<float>(result);
+    double_version = static_cast<double>(result);
+    int_version = static_cast<int>(result);
     char_version = static_cast<char>(result);
     return (true);
 }
@@ -93,20 +95,22 @@ bool ScalarConverter::check_double(const std::string& target)
     if (result == HUGE_VAL || result == -HUGE_VAL)
         return (double_overflow = true, false);
 
-    std::cout << "Returned false? -> " << result << std::endl;
-
     if (result > MAX_FLOAT || result < MIN_FLOAT)
         float_overflow = true;
     if (result > MAX_INT || result < MIN_INT)
         int_overflow = true;
     if (result > CHAR_MAX || result < CHAR_MIN)
         char_overflow = true;
-    
+
+    size_t  dec_pos = target.find('.');
+    if (dec_pos > 6)
+        scientific_notation = true;
+
     double_version = static_cast<double>(result);
     float_version = static_cast<float>(result);
     int_version = static_cast<int>(result);
-
     char_version = static_cast<char>(result);
+
     return (true);
 }
 
@@ -134,10 +138,10 @@ bool ScalarConverter::check_char(const std::string& target)
         one to catch it anyways.
     */
 
-    double_version = static_cast<double>(result);
-    float_version = static_cast<float>(result);
-    int_version = static_cast<int>(result);
     char_version = static_cast<char>(result);
+    float_version = static_cast<float>(result);
+    double_version = static_cast<double>(result);
+    int_version = static_cast<int>(result);
     return (true);
 }
 
@@ -198,9 +202,11 @@ t_type ScalarConverter::get_type(const std::string& target)
     whenever a we cast from a float value that is larger than int max to the 
     int type. Then since, 184845151555512 != -2147483648, it would automatically 
     give us the desired output which is scientific notation display.
-*/   
+*/
 void ScalarConverter::printer()
 {
+    std::cout << "Bool -> " << scientific_notation << std::endl;
+
     std::cout << "char: ";
     if (char_overflow)
         std::cout << "impossible" << std::endl;
@@ -218,20 +224,27 @@ void ScalarConverter::printer()
     std::cout << "float: ";
     if (float_overflow)
         std::cout << "impossible" << std::endl;
-    else if (float_version == static_cast<int>(float_version))
-        std::cout << std::fixed << std::setprecision(1) << float_version << std::endl;
+    else if (scientific_notation == false)
+        std::cout << std::fixed << std::setprecision(1) << float_version << "f" << std::endl;
     else
-        std::cout << float_version << std::endl;
+        std::cout << float_version << "f" << std::endl;
 
     std::cout << "double: "; 
     if (double_overflow)
         std::cout << "impossible" << std::endl;
-    else if (double_version == static_cast<int>(double_version))
+    else if (scientific_notation == false)
         std::cout << std::fixed << std::setprecision(1) << double_version << std::endl;
     else
         std::cout << double_version << std::endl;
 }
 
+/*
+    What's left:
+        * Implement the extremities for float and double 
+
+        * Parse anything larger than int and not double or
+          float should be rejected
+*/
 void ScalarConverter::convert(const std::string& target)
 {
     t_type type;
