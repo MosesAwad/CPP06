@@ -2,8 +2,23 @@
 #ifndef SCALARCONVERTER_HPP
 # define SCALARCONVERTER_HPP
 
+#include <cctype>
+#include <cstdlib>
+#include <cerrno>
+#include <limits>
+#include <sstream>
 #include <iostream>
+#include <iomanip>
 #include <string>
+
+typedef enum e_type
+{
+    CHAR,
+    INT,
+    FLOAT,
+    DOUBLE,
+    OTHER
+} t_type;
 
 class ScalarConverter
 {
@@ -13,12 +28,10 @@ class ScalarConverter
         ScalarConverter& operator=(const ScalarConverter& other);
     public:
         ~ScalarConverter();
-        static void convert(const std::string& target);
-        
-        static int  char_version;
-        static int  int_version;
-        static int  float_version;
-        static int  double_version;
+        static char     char_version;
+        static int      int_version;
+        static float    float_version;
+        static double   double_version;
 
         static bool char_overflow;
         static bool int_overflow;
@@ -36,17 +49,12 @@ class ScalarConverter
 
         static bool    check_int(const std::string& target);
         static bool    check_float(const std::string& target);
+        static bool    check_double(const std::string& target);
+        static bool    check_char(const std::string& target);
 
-        static t_type  get_type(const std::string& target);
+        static void     printer();
+        static t_type   get_type(const std::string& target);
+        static void     convert(const std::string& target);
 };
-
-typedef enum e_type
-{
-    CHAR,
-    INT,
-    FLOAT,
-    DOUBLE,
-    OTHER
-} t_type;
 
 #endif
