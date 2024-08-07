@@ -294,6 +294,10 @@ bool    ScalarConverter::check_pseudo(const std::string& target)
           float should be rejected
         
         * Handle minimum for floating points and doubles
+
+        * Also max for double, so 1.23e350 should not return
+          other. Or maybe you can let it. Implement it like
+          how you would implement exceeding int max
 */
 void ScalarConverter::convert(const std::string& target)
 {
