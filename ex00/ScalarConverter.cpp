@@ -288,10 +288,12 @@ bool    ScalarConverter::check_pseudo(const std::string& target)
 
 /*
     What's left:
-        * Implement the extremities for float and double 
+        * Implement the extremities for float and double (C)
 
         * Parse anything larger than int and not double or
           float should be rejected
+        
+        * Handle minimum for floating points and doubles
 */
 void ScalarConverter::convert(const std::string& target)
 {
