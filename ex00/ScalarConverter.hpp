@@ -54,6 +54,7 @@ class ScalarConverter
         static bool    check_char(const std::string& target);
 
         static void     printer();
+        static bool     check_pseudo(const std::string& target);
         static t_type   get_type(const std::string& target);
         static void     convert(const std::string& target);
 };

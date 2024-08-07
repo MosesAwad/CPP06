@@ -65,6 +65,8 @@ bool ScalarConverter::check_float(const std::string& target)
     result = strtod(target.c_str(), &endptr);
     if (!(*endptr == 'f' && (*(endptr + 1) == '\0')))
         return (false);
+    if (check_pseudo(target))
+        return (true);
     if (result > MAX_FLOAT || result < MIN_FLOAT)
         return (float_overflow = true, false);
     if (result > MAX_INT || result < MIN_INT)
@@ -89,12 +91,12 @@ bool ScalarConverter::check_double(const std::string& target)
     double  result;
 
     result = strtod(target.c_str(), &endptr);
-
     if (*endptr != '\0')
         return (false);
+    if (check_pseudo(target))
+        return (true);
     if (result == HUGE_VAL || result == -HUGE_VAL)
         return (double_overflow = true, false);
-
     if (result > MAX_FLOAT || result < MIN_FLOAT)
         float_overflow = true;
     if (result > MAX_INT || result < MIN_INT)
@@ -205,8 +207,6 @@ t_type ScalarConverter::get_type(const std::string& target)
 */
 void ScalarConverter::printer()
 {
-    std::cout << "Bool -> " << scientific_notation << std::endl;
-
     std::cout << "char: ";
     if (char_overflow)
         std::cout << "impossible" << std::endl;
@@ -236,6 +236,54 @@ void ScalarConverter::printer()
         std::cout << std::fixed << std::setprecision(1) << double_version << std::endl;
     else
         std::cout << double_version << std::endl;
+}
+
+bool    ScalarConverter::check_pseudo(const std::string& target)
+{
+    std::string array[8] = { "inf", "inff", "+inf",  "+inff", 
+        "-inf", "-inff", "nan", "nanf"
+        };
+
+    size_t i = 0;
+    int case_flag = 0;
+
+    while (i < sizeof(array) / sizeof(array[0]))
+    {
+        if (target == array[i])
+            break ;
+        i++;
+    }
+    if (i >= 0 && i < 4)
+        case_flag = 0;
+    else if (i >= 4 && i < 6)
+        case_flag = 1;
+    else if (i >= 6 && i < 8)
+        case_flag = 2;
+    else
+        return (false);
+
+    int_overflow = true;
+    char_overflow = true;
+
+    float_overflow = false;
+    double_overflow = false;
+    
+    switch (case_flag)
+    {
+        case 0:
+            float_version = std::numeric_limits<float>::infinity();
+            double_version = std::numeric_limits<double>::infinity();
+            break ;
+        case 1:
+            float_version = -1 * std::numeric_limits<float>::infinity();
+            double_version = -1 * std::numeric_limits<double>::infinity();
+            break ;
+        case 2:
+            float_version = std::numeric_limits<float>::quiet_NaN();
+            double_version = std::numeric_limits<double>::quiet_NaN();
+            break ;
+    }
+    return (true);
 }
 
 /*
