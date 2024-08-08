@@ -5,9 +5,9 @@
 const int ScalarConverter::MAX_INT = std::numeric_limits<int>::max();
 const int ScalarConverter::MIN_INT = std::numeric_limits<int>::min();
 const float ScalarConverter::MAX_FLOAT = std::numeric_limits<float>::max();
-const float ScalarConverter::MIN_FLOAT = std::numeric_limits<float>::min();
+const float ScalarConverter::MIN_FLOAT = -1 * std::numeric_limits<float>::max();
 const double ScalarConverter::MAX_DOUBLE = std::numeric_limits<double>::max();
-const double ScalarConverter::MIN_DOUBLE = std::numeric_limits<double>::min();
+const double ScalarConverter::MIN_DOUBLE = -1 * std::numeric_limits<double>::min();
 const char ScalarConverter::MAX_CHAR = std::numeric_limits<char>::max();    // gives a value of -128
 const char ScalarConverter::MIN_CHAR = std::numeric_limits<char>::min();    // gives a value of 127
 
@@ -17,11 +17,14 @@ bool ScalarConverter::float_overflow = false;
 bool ScalarConverter::double_overflow = false;
 bool ScalarConverter::scientific_notation = false;
 
-char     ScalarConverter::char_version;
+char    ScalarConverter::char_version;
 int     ScalarConverter::int_version;
 float   ScalarConverter::float_version;
 double  ScalarConverter::double_version;
 
+/*
+            --- CHECKER FUNCTIONS ---
+*/
 bool    ScalarConverter::check_int(const std::string& target)
 {
     char    *endptr;
@@ -47,7 +50,7 @@ bool    ScalarConverter::check_int(const std::string& target)
     float_version = static_cast<float>(int_version);
     double_version = static_cast<double>(int_version);
     char_version = static_cast<char>(int_version);
-        
+
     return (true);
 }
 
@@ -75,7 +78,7 @@ bool ScalarConverter::check_float(const std::string& target)
         char_overflow = true;
 
     size_t  dec_pos = target.find('.');
-    if (dec_pos > 6)
+    if (dec_pos > 6 || (target.find('e') != std::string::npos))
         scientific_notation = true;
 
     float_version = static_cast<float>(result);
@@ -105,9 +108,24 @@ bool ScalarConverter::check_double(const std::string& target)
         char_overflow = true;
 
     size_t  dec_pos = target.find('.');
-    if (dec_pos > 6)
-        scientific_notation = true;
+    /*
+        This if (dec_pos == std::string::npos) statement is what also lets 
+        me parse the target string to check whether an "int" that has exceeded 
+        MAX_INT or MIN_INT has been inputted.
 
+        That is because technically a double always has to have a decimal 
+        in it to distinguish it from an int or a long. Meanwhile a float 
+        would only be cast as a float from the target string if an 'f' has 
+        been inputted at its end. So,
+            21474836478 -> rejected (not an int, float, or a double)
+            21474836478f -> accepted (a float)
+            21474836478. or 21474836478.0 -> accepted (a double)
+    */
+    if (dec_pos > 6 || (target.find('e') != std::string::npos))
+        scientific_notation = true;
+    if (dec_pos == std::string::npos)
+        return (false);
+    std::cout << "Value -> " << dec_pos << std::endl;
     double_version = static_cast<double>(result);
     float_version = static_cast<float>(result);
     int_version = static_cast<int>(result);
@@ -151,10 +169,10 @@ t_type ScalarConverter::get_type(const std::string& target)
 {
     if (check_int(target) == true)
         return (INT);
-    if (check_double(target))
-        return (DOUBLE);
     if (check_float(target))
         return (FLOAT);
+    if (check_double(target))
+        return (DOUBLE);
     if (check_char(target))
         return (CHAR);
     return (OTHER);
@@ -253,6 +271,7 @@ bool    ScalarConverter::check_pseudo(const std::string& target)
             break ;
         i++;
     }
+
     if (i >= 0 && i < 4)
         case_flag = 0;
     else if (i >= 4 && i < 6)
@@ -288,16 +307,18 @@ bool    ScalarConverter::check_pseudo(const std::string& target)
 
 /*
     What's left:
-        * Implement the extremities for float and double (C)
+        * Implement the extremities (pseudo literals) for float and double (C)
 
         * Parse anything larger than int and not double or
-          float should be rejected
+          float should be rejected (C)
         
-        * Handle minimum for floating points and doubles
+        * Handle minimum for floating points and doubles (C)
 
         * Also max for double, so 1.23e350 should not return
           other. Or maybe you can let it. Implement it like
-          how you would implement exceeding int max
+          how you would implement exceeding int max (C)
+
+        * Orthodox Canonical
 */
 void ScalarConverter::convert(const std::string& target)
 {
@@ -310,3 +331,21 @@ void ScalarConverter::convert(const std::string& target)
         std::cerr << "Entry does not match any of the following literals:"
             " char, int, float, double" << std::endl;
 }
+
+/*
+            --- ORTHODOX CANONICAL FORM ---
+*/
+ScalarConverter::ScalarConverter() {};
+
+ScalarConverter::ScalarConverter(const ScalarConverter& other)
+{
+    *this = other;
+}
+
+ScalarConverter& ScalarConverter::operator=(const ScalarConverter& other)
+{
+    (void) other;
+    return (*this);
+}
+
+ScalarConverter::~ScalarConverter() {};
