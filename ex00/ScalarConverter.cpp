@@ -1,7 +1,11 @@
 
 #include "ScalarConverter.hpp"
 
-
+/*
+                    --------------------------
+            ------ STATIC VARIABLE DECLARATIONS ------
+                    --------------------------
+*/
 const int ScalarConverter::MAX_INT = std::numeric_limits<int>::max();
 const int ScalarConverter::MIN_INT = std::numeric_limits<int>::min();
 const float ScalarConverter::MAX_FLOAT = std::numeric_limits<float>::max();
@@ -23,7 +27,9 @@ float   ScalarConverter::float_version;
 double  ScalarConverter::double_version;
 
 /*
-            --- CHECKER FUNCTIONS ---
+                    ---------------
+            ------ CHECKER FUNCTIONS ------ 
+                    ---------------
 */
 bool    ScalarConverter::check_int(const std::string& target)
 {
@@ -54,12 +60,12 @@ bool    ScalarConverter::check_int(const std::string& target)
     return (true);
 }
 
-/*
-    Use strtod and not strtof so we can capture overflow and
-    be able to check if the target_string when converted exceeds
-    the limits of float or not. Just like how a long number is
-    required to check if MAX_INT or MIN_INT are exceeded.
-*/
+    /*
+        Use strtod and not strtof so we can capture overflow and
+        be able to check if the target_string when converted exceeds
+        the limits of float or not. Just like how a long number is
+        required to check if MAX_INT or MIN_INT are exceeded.
+    */
 bool ScalarConverter::check_float(const std::string& target)
 {
     char    *endptr;
@@ -165,20 +171,60 @@ bool ScalarConverter::check_char(const std::string& target)
     return (true);
 }
 
-t_type ScalarConverter::get_type(const std::string& target)
+bool    ScalarConverter::check_pseudo(const std::string& target)
 {
-    if (check_int(target) == true)
-        return (INT);
-    if (check_float(target))
-        return (FLOAT);
-    if (check_double(target))
-        return (DOUBLE);
-    if (check_char(target))
-        return (CHAR);
-    return (OTHER);
+    std::string array[8] = { "inf", "inff", "+inf",  "+inff", 
+        "-inf", "-inff", "nan", "nanf"
+        };
+
+    size_t i = 0;
+    int case_flag = 0;
+
+    while (i < sizeof(array) / sizeof(array[0]))
+    {
+        if (target == array[i])
+            break ;
+        i++;
+    }
+
+    if (i >= 0 && i < 4)
+        case_flag = 0;
+    else if (i >= 4 && i < 6)
+        case_flag = 1;
+    else if (i >= 6 && i < 8)
+        case_flag = 2;
+    else
+        return (false);
+
+    int_overflow = true;
+    char_overflow = true;
+
+    float_overflow = false;
+    double_overflow = false;
+    
+    switch (case_flag)
+    {
+        case 0:
+            float_version = std::numeric_limits<float>::infinity();
+            double_version = std::numeric_limits<double>::infinity();
+            break ;
+        case 1:
+            float_version = -1 * std::numeric_limits<float>::infinity();
+            double_version = -1 * std::numeric_limits<double>::infinity();
+            break ;
+        case 2:
+            float_version = std::numeric_limits<float>::quiet_NaN();
+            double_version = std::numeric_limits<double>::quiet_NaN();
+            break ;
+    }
+    return (true);
 }
 
 /*
+                    ---------------
+            ------ PRINTER FUNCTION ------
+                    ---------------
+
     For floats and doubles, we set the precision to 1 because 
     By default, std::cout does not preserve trailing zeroes 
     in floating-point numbers, so if target is 98.0000 it will 
@@ -256,69 +302,28 @@ void ScalarConverter::printer()
         std::cout << double_version << std::endl;
 }
 
-bool    ScalarConverter::check_pseudo(const std::string& target)
+/*
+                   ----------
+           ------ TYPE GETTER ------
+                   ----------
+*/
+t_type ScalarConverter::get_type(const std::string& target)
 {
-    std::string array[8] = { "inf", "inff", "+inf",  "+inff", 
-        "-inf", "-inff", "nan", "nanf"
-        };
-
-    size_t i = 0;
-    int case_flag = 0;
-
-    while (i < sizeof(array) / sizeof(array[0]))
-    {
-        if (target == array[i])
-            break ;
-        i++;
-    }
-
-    if (i >= 0 && i < 4)
-        case_flag = 0;
-    else if (i >= 4 && i < 6)
-        case_flag = 1;
-    else if (i >= 6 && i < 8)
-        case_flag = 2;
-    else
-        return (false);
-
-    int_overflow = true;
-    char_overflow = true;
-
-    float_overflow = false;
-    double_overflow = false;
-    
-    switch (case_flag)
-    {
-        case 0:
-            float_version = std::numeric_limits<float>::infinity();
-            double_version = std::numeric_limits<double>::infinity();
-            break ;
-        case 1:
-            float_version = -1 * std::numeric_limits<float>::infinity();
-            double_version = -1 * std::numeric_limits<double>::infinity();
-            break ;
-        case 2:
-            float_version = std::numeric_limits<float>::quiet_NaN();
-            double_version = std::numeric_limits<double>::quiet_NaN();
-            break ;
-    }
-    return (true);
+    if (check_int(target) == true)
+        return (INT);
+    if (check_float(target))
+        return (FLOAT);
+    if (check_double(target))
+        return (DOUBLE);
+    if (check_char(target))
+        return (CHAR);
+    return (OTHER);
 }
 
 /*
-    What's left:
-        * Implement the extremities (pseudo literals) for float and double (C)
-
-        * Parse anything larger than int and not double or
-          float should be rejected (C)
-        
-        * Handle minimum for floating points and doubles (C)
-
-        * Also max for double, so 1.23e350 should not return
-          other. Or maybe you can let it. Implement it like
-          how you would implement exceeding int max (C)
-
-        * Orthodox Canonical
+                    --------------
+            ------ CONVERT FUNCTION ------
+                    --------------
 */
 void ScalarConverter::convert(const std::string& target)
 {
@@ -333,7 +338,9 @@ void ScalarConverter::convert(const std::string& target)
 }
 
 /*
-            --- ORTHODOX CANONICAL FORM ---
+                    ---------------------
+            ------ ORTHODOX CANONICAL FORM ------
+                    ---------------------
 */
 ScalarConverter::ScalarConverter() {};
 
