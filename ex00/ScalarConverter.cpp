@@ -321,9 +321,9 @@ t_type ScalarConverter::get_type(const std::string& target)
 }
 
 /*
-                    --------------
-            ------ CONVERT FUNCTION ------
-                    --------------
+                --------------
+        ------ CONVERT FUNCTION ------
+                --------------
 */
 void ScalarConverter::convert(const std::string& target)
 {
