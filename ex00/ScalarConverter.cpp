@@ -11,7 +11,7 @@ const int ScalarConverter::MIN_INT = std::numeric_limits<int>::min();
 const float ScalarConverter::MAX_FLOAT = std::numeric_limits<float>::max();
 const float ScalarConverter::MIN_FLOAT = -1 * std::numeric_limits<float>::max();
 const double ScalarConverter::MAX_DOUBLE = std::numeric_limits<double>::max();
-const double ScalarConverter::MIN_DOUBLE = -1 * std::numeric_limits<double>::min();
+const double ScalarConverter::MIN_DOUBLE = -1 * std::numeric_limits<double>::max();
 const char ScalarConverter::MAX_CHAR = std::numeric_limits<char>::max();    // gives a value of -128
 const char ScalarConverter::MIN_CHAR = std::numeric_limits<char>::min();    // gives a value of 127
 
@@ -78,11 +78,18 @@ bool ScalarConverter::check_float(const std::string& target)
         return (true);
     if (result > MAX_FLOAT || result < MIN_FLOAT)
         return (float_overflow = true, false);
+    /*
+        This is the part that checks if the number is too small
+        like 1.4e-39 as opposed to too big but on the negative
+        side like -3.4e38.
+    */
+    if (result != 0.0 && std::fabs(result) < FLT_MIN)
+        return (float_overflow = true, false);
+    
     if (result > MAX_INT || result < MIN_INT)
         int_overflow = true;
     if (result > MAX_CHAR || result < MIN_CHAR)
         char_overflow = true;
-
     size_t  dec_pos = target.find('.');
     if (dec_pos > 6 || (target.find('e') != std::string::npos))
         scientific_notation = true;
@@ -106,8 +113,19 @@ bool ScalarConverter::check_double(const std::string& target)
         return (true);
     if (result == HUGE_VAL || result == -HUGE_VAL)
         return (double_overflow = true, false);
+    if (result != 0.0 && std::fabs(result) < DBL_MIN)
+        return (std::cout << "You? -> " << DBL_MIN << std::endl, double_overflow = true, false);
+
     if (result > MAX_FLOAT || result < MIN_FLOAT)
         float_overflow = true;
+    /*
+        This is the part that checks if the number is too small
+        like 1.4e-39 as opposed to too big but on the negative
+        side like -3.4e38.
+    */
+    if (std::fabs(result) < FLT_MIN)
+        float_overflow = true;
+
     if (result > MAX_INT || result < MIN_INT)
         int_overflow = true;
     if (result > CHAR_MAX || result < CHAR_MIN)
@@ -131,7 +149,6 @@ bool ScalarConverter::check_double(const std::string& target)
         scientific_notation = true;
     if (dec_pos == std::string::npos)
         return (false);
-    std::cout << "Value -> " << dec_pos << std::endl;
     double_version = static_cast<double>(result);
     float_version = static_cast<float>(result);
     int_version = static_cast<int>(result);

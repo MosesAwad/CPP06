@@ -10,6 +10,8 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <cfloat>
+#include <cmath>
 
 typedef enum e_type
 {
