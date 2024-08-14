@@ -49,7 +49,7 @@ bool    ScalarConverter::check_int(const std::string& target)
 
     if (int_version > MAX_CHAR || int_version < MIN_CHAR)
         char_overflow = true;
-    if (result > CHAR_MAX || result < CHAR_MIN)
+    if (result > MAX_CHAR || result < MIN_CHAR)
         char_overflow = true;
 
     int_version = static_cast<int>(result);
@@ -128,7 +128,7 @@ bool ScalarConverter::check_double(const std::string& target)
 
     if (result > MAX_INT || result < MIN_INT)
         int_overflow = true;
-    if (result > CHAR_MAX || result < CHAR_MIN)
+    if (result > MAX_CHAR || result < MIN_CHAR)
         char_overflow = true;
 
     size_t  dec_pos = target.find('.');
@@ -173,11 +173,11 @@ bool ScalarConverter::check_char(const std::string& target)
     /*
         No need to check for the following condition:
             
-            if (result > CHAR_MAX || result < CHAR_MIN)
+            if (result > MAX_CHAR || result < MIN_CHAR)
                 char_overflow = true;
     
         Because if result is greater than or less than
-        CHAR_MAX or CHAR_MIN, the check_int would be the 
+        MAX_CHAR or MIN_CHAR, the check_int would be the 
         one to catch it anyways.
     */
 
@@ -204,7 +204,7 @@ bool    ScalarConverter::check_pseudo(const std::string& target)
         i++;
     }
 
-    if (i >= 0 && i < 4)
+    if (i < 4)
         case_flag = 0;
     else if (i >= 4 && i < 6)
         case_flag = 1;

@@ -43,7 +43,7 @@ void	identify(Base& p)
 		(void) ref;
 		return (std::cout << "Object is of class A" << std::endl, void());
 	}
-	catch (const std::bad_cast& e) {
+	catch (const std::exception& e) {
 	}
 
 	try
@@ -52,7 +52,7 @@ void	identify(Base& p)
 		(void) ref;
 		return (std::cout << "Object is of class B" << std::endl, void());
 	}
-	catch(const std::bad_cast& e) {
+	catch(const std::exception& e) {
 	}
 
 	try
@@ -61,6 +61,6 @@ void	identify(Base& p)
 		(void) ref;
 		return (std::cout << "Object is of class C" << std::endl, void());
 	}
-	catch(const std::bad_cast& e) {
+	catch(const std::exception& e) {
 	}
 };

@@ -2,8 +2,7 @@
 #ifndef SERIALIZER_HPP
 # define SERIALIZER_HPP
 
-#include <cstdint>
-#include <iterator>
+#include <stdint.h>
 #include <string>
 #include <iostream>
 #include "Data.hpp"
