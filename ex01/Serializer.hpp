@@ -6,14 +6,7 @@
 #include <iterator>
 #include <string>
 #include <iostream>
-
-typedef struct Data
-{
-	int			grade;
-	std::string	name;
-	long		student_id;
-} Data;
-
+#include "Data.hpp"
 class Serializer
 {
 	private:
