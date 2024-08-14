@@ -28,9 +28,8 @@ class ScalarConverter
         ScalarConverter();
         ScalarConverter(const ScalarConverter& other);
         ScalarConverter& operator=(const ScalarConverter& other);
-    public:
         ~ScalarConverter();
-
+    public:
         static char     char_version;
         static int      int_version;
         static float    float_version;
