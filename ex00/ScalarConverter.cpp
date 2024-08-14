@@ -114,7 +114,7 @@ bool ScalarConverter::check_double(const std::string& target)
     if (result == HUGE_VAL || result == -HUGE_VAL)
         return (double_overflow = true, false);
     if (result != 0.0 && std::fabs(result) < DBL_MIN)
-        return (std::cout << "You? -> " << DBL_MIN << std::endl, double_overflow = true, false);
+        return (double_overflow = true, false);
 
     if (result > MAX_FLOAT || result < MIN_FLOAT)
         float_overflow = true;
@@ -123,7 +123,7 @@ bool ScalarConverter::check_double(const std::string& target)
         like 1.4e-39 as opposed to too big but on the negative
         side like -3.4e38.
     */
-    if (std::fabs(result) < FLT_MIN)
+    if (result != 0.0 && std::fabs(result) < FLT_MIN)
         float_overflow = true;
 
     if (result > MAX_INT || result < MIN_INT)
